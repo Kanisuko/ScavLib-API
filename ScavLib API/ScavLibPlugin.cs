@@ -5,13 +5,16 @@ using ScavLib.command;
 using ScavLib.gui;
 using ScavLib.gui.imgui;
 using ScavLib.gui.ugui;
+using ScavLib.i18n;
 using ScavLib.mods;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace ScavLib
 {
     [BepInPlugin("com.kanisuko.scavlib", "ScavLib", Version)]
+    [BepInDependency("KrokoshaCasualtiesMP", BepInDependency. DependencyFlags.SoftDependency)]
     public class ScavLibPlugin : BaseUnityPlugin
     {
 
@@ -35,14 +38,26 @@ namespace ScavLib
             Log = base.Logger;
 
             _harmony = new Harmony("com.kanisuko.scavlib");
+
             ApplyPatchesIndividually();
 
             CommandRegistry.Init();
             ImguiMenuManager.Init();
 
             compat.RivalFrameworkDetector.CheckAndWarn();
+            compat.krokmp.KrokMpBridge.Init(_harmony);
 
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnFirstSceneLoaded;
+
+            try
+            {
+                string pluginDir = Path.GetDirectoryName(Info.Location);
+                i18n.LocaleManager.AutoRegister("ScavLib", pluginDir);
+            }
+            catch (System.Exception ex)
+            {
+                Log.LogError($"[ScavLib] Failed to initialize self-i18n: {ex.Message}");
+            }
 
             ModRegistry.Register(new ModInfo(
                 SelfModName,
@@ -53,7 +68,7 @@ namespace ScavLib
 
             CommandRegistry.TryRegister(new ScavLibCommand(), SelfModName, out _);
 
-            Log.LogInfo($"ScavLib {Version} loaded successfully.");
+            Log.LogInfo($"ScavLib {Version} loaded successfully with i18n 2.0.");
         }
 
         private void OnFirstSceneLoaded(
@@ -85,7 +100,7 @@ namespace ScavLib
                 typeof(item.patches.ConsoleSpawnAutofillPatch),
                 typeof(recipe.patches.RecipesSetUpRecipesPatch),
                 typeof(recipe.patches.RecipeResultSpritePatch),
-                typeof(i18n.patches.LocaleLoadLanguagePatch),
+                typeof(i18n.LocalePatches),
 
                 typeof(save.patches.SaveGamePatch),
                 typeof(save.patches.TryLoadGamePatch),

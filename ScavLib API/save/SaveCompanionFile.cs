@@ -12,6 +12,8 @@ namespace ScavLib.save
     {
         private const string FileName = "save.scavlib.sv";
 
+        internal static Func<string> SaveDirResolver = () => Application.persistentDataPath;
+
         private static string FilePath
             => Path.Combine(Application.persistentDataPath, FileName);
 

@@ -9,7 +9,8 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ScavLib</RootNamespace>
     <AssemblyName>ScavLib API</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <LangVersion>latest</LangVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
@@ -41,6 +42,10 @@
     </Reference>
     <Reference Include="BepInEx">
       <HintPath>BepInEx.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="KrokoshaCasualtiesMP">
+      <HintPath>KrokoshaCasualtiesMP.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
@@ -97,6 +102,11 @@
     <Compile Include="command\CommandRegistry.cs" />
     <Compile Include="command\CommandRegistryPatch.cs" />
     <Compile Include="command\ScavLibCommand.cs" />
+    <Compile Include="compat\krokmp\KrokMpBridge.cs" />
+    <Compile Include="compat\krokmp\KrokMpConSpawnPatch.cs" />
+    <Compile Include="compat\krokmp\KrokMpGoSyncPatch.cs" />
+    <Compile Include="compat\krokmp\KrokMpSavePath.cs" />
+    <Compile Include="compat\krokmp\KrokMpValidationPatch.cs" />
     <Compile Include="compat\RivalFrameworkDetector.cs" />
     <Compile Include="config\ConfigManager.cs" />
     <Compile Include="event\BusEvent.cs" />
@@ -137,8 +147,9 @@
     <Compile Include="gui\ugui\UguiTheme.With.cs" />
     <Compile Include="gui\ugui\UguiToggleGroup.cs" />
     <Compile Include="gui\ugui\UguiWindowBase.cs" />
-    <Compile Include="i18n\LocaleRegistry.cs" />
-    <Compile Include="i18n\patches\LocaleLoadLanguagePatch.cs" />
+    <Compile Include="i18n\LocaleManager.cs" />
+    <Compile Include="i18n\LocalePatches.cs" />
+    <Compile Include="i18n\I18nTemplateGenerator.cs" />
     <Compile Include="item\CustomItem.cs" />
     <Compile Include="item\CustomItemBuilder.cs" />
     <Compile Include="item\CustomItemRegistry.cs" />
@@ -146,6 +157,7 @@
     <Compile Include="item\patches\ConsoleSpawnAutofillPatch.cs" />
     <Compile Include="item\patches\ItemSetupItemsPatch.cs" />
     <Compile Include="item\ItemTemplate.cs" />
+    <Compile Include="item\patches\TraderUiSpritePatch.cs" />
     <Compile Include="item\patches\UtilsCreatePatch.cs" />
     <Compile Include="item\PrefabTemplateCache.cs" />
     <Compile Include="item\VanillaSlots.cs" />

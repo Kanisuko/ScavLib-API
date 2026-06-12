@@ -73,7 +73,7 @@ namespace ScavLib.item
 
             _items[item.Id] = item;
 
-            LocaleRegistry.RegisterItem(item.Id, item.DisplayNames, item.Descriptions);
+            LocaleManager.RegisterItem(item.Id, item.DisplayNames, item.Descriptions);
 
             if (ItemsInitialized && Item.GlobalItems != null)
             {
