@@ -15,27 +15,83 @@ namespace ScavLib.liquid
         internal static bool TryRegister(string id, LiquidType type, string owner, out string error)
         {
             error = null;
-            if (string.IsNullOrEmpty(id)) { error = "Liquid id is null/empty."; return Fail(error); }
-            if (type == null) { error = $"Liquid '{id}' has null LiquidType."; return Fail(error); }
-
-            if (_pending.TryGetValue(id, out var existing) &&
-                !string.Equals(existing.owner, owner, StringComparison.OrdinalIgnoreCase))
+            bool flag = string.IsNullOrEmpty(id);
+            bool flag2;
+            if (flag)
             {
-                error = $"Liquid id '{id}' already registered by '{existing.owner ?? "<unknown>"}'.";
-                return Fail(error);
+                error = "Liquid id is null/empty.";
+                flag2 = CustomLiquidRegistry.Fail(error);
             }
-
-            _pending[id] = (type, owner);
-
-            if (LiquidsInitialized && Liquids.Registry != null)
+            else
             {
-                Liquids.Registry[id] = type;
-                ScavLibPlugin.Log.LogInfo(
-                    $"[CustomLiquidRegistry] Late-registered liquid '{id}' into vanilla registry " +
-                    $"(owner: {owner ?? "<none>"}).");
-            }
+                bool flag3 = type == null;
+                if (flag3)
+                {
+                    error = "Liquid '" + id + "' has null LiquidType.";
+                    flag2 = CustomLiquidRegistry.Fail(error);
+                }
+                else
+                {
+                    ValueTuple<LiquidType, string> existing;
+                    bool flag4 = CustomLiquidRegistry._pending.TryGetValue(id, out existing) && !string.Equals(existing.Item2, owner, StringComparison.OrdinalIgnoreCase);
+                    if (flag4)
+                    {
+                        error = string.Concat(new string[] { "Liquid id '", id, "' already registered by '", existing.Item2 ?? "<unknown>", "'." });
+                        flag2 = CustomLiquidRegistry.Fail(error);
+                    }
+                    else
+                    {
+                        CustomLiquidRegistry._pending[id] = new ValueTuple<LiquidType, string>(type, owner);
+                        bool flag5 = CustomLiquidRegistry.LiquidsInitialized && Liquids.Registry != null;
+                        if (flag5)
+                        {
+                            Liquids.Registry[id] = type;
 
-            return true;
+                            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("KrokoshaCasualtiesMP"))
+                            {
+                                InvokeKrokMpLiquidSync(id);
+                            }
+
+                            ScavLibPlugin.Log.LogInfo($"[CustomLiquidRegistry] Late-registered liquid '{id}' (owner: {owner ?? "<none>"}).");
+                        }
+                        flag2 = true;
+                    }
+                }
+            }
+            return flag2;
+        }
+
+        private static void InvokeKrokMpLiquidSync(string id)
+        {
+            try
+            {
+
+                var listenerType = Type.GetType("KrokoshaCasualtiesMP.Item_SetupItems_Listener, KrokoshaCasualtiesMP");
+                if (listenerType == null) return;
+
+                var registryField = listenerType.GetField("LiquidIdRegistry", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                var netIdToIdField = listenerType.GetField("LiquidNetIdToId", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+
+                if (registryField != null && netIdToIdField != null)
+                {
+                    var registry = (System.Collections.IDictionary)registryField.GetValue(null);
+                    if (registry != null && !registry.Contains(id))
+                    {
+                        byte newNetId = (byte)registry.Count;
+                        registry[id] = newNetId;
+
+                        string[] oldArr = (string[])netIdToIdField.GetValue(null);
+                        string[] newArr = new string[oldArr.Length + 1];
+                        Array.Copy(oldArr, newArr, oldArr.Length);
+                        newArr[newNetId] = id;
+                        netIdToIdField.SetValue(null, newArr);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ScavLibPlugin.Log.LogDebug("[ScavLib] KrokMP liquid sync bridge failed: " + ex.Message);
+            }
         }
 
         internal static void FlushIntoRegistry()

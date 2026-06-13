@@ -31,9 +31,16 @@ namespace ScavLib.i18n
 
         public static void RegisterItem(string id, IReadOnlyDictionary<string, string> names, IReadOnlyDictionary<string, string> descs = null)
         {
-            RegisteredItemIds.Add(id);
-            if (names != null) ManualItems[id] = names;
-            if (descs != null) ManualOthers[id] = descs;
+            LocaleManager.RegisteredItemIds.Add(id);
+            if (names != null)
+            {
+                LocaleManager.ManualItems[id] = names;
+            }
+            if (descs != null)
+            {
+
+                LocaleManager.ManualOthers[id + "dsc"] = descs;
+            }
         }
 
         public static void RegisterString(string key, IReadOnlyDictionary<string, string> translations)
